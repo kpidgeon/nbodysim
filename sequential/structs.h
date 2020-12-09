@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <memory>
 
 struct Point3D
 {
@@ -40,14 +41,16 @@ public:
 
     BHNode(Point3D, Point3D);
 
-	BHNode* oct1;
-    BHNode* oct2;
-    BHNode* oct3;
-    BHNode* oct4;
-    BHNode* oct5;
-    BHNode* oct6;
-    BHNode* oct7;
-    BHNode* oct8;
+    // All memory pertaining to sub-trees will be deleted
+    // when a BHNode goes out of scope 
+    std::unique_ptr<BHNode> oct1;
+    std::unique_ptr<BHNode> oct2;
+    std::unique_ptr<BHNode> oct3;
+    std::unique_ptr<BHNode> oct4;
+    std::unique_ptr<BHNode> oct5;
+    std::unique_ptr<BHNode> oct6;
+    std::unique_ptr<BHNode> oct7;
+    std::unique_ptr<BHNode> oct8;
 
     Point3D getCentreOfMass();
     float getTotalMass();
@@ -55,36 +58,42 @@ public:
     Point3D getLowBound();
     Point3D getHighBound();
 
-    GravObj getObject();
-    void setObject(GravObj&);
+    const GravObj* getObject();
+    void setObject(const GravObj&);
+    void clearObject();
     
-    bool contains(GravObj);
+    bool contains(const GravObj&);
 
 private:
 
-    GravObj *_obj;
+    const GravObj *_obj;
 
     // should replace these vertex bounds with a 'Cell'
     // abstraction
     Point3D _lowBound;
     Point3D _highBound;
-    // Cell cell;
+
+    // for holding substructure information
     Point3D _centreOfMass;
     float _mass;
 
 };
 
 
+
+// Wrapper for the Barnes-Hut tree
 class BHTree
 {
 
     public:
 
-        BHTree(std::vector<GravObj>);
+        BHTree(const std::vector<GravObj>&);
 
-        BHNode root;
+        // When a BHTree instance goes out of scope
+        // the memory deallocation will propagate down the
+        // tree
+        std::unique_ptr<BHNode> root;
 
-        ~BHTree();
-
+        void insertParticle(std::unique_ptr<BHNode>&, const GravObj& p);
 
 };
