@@ -2,10 +2,17 @@
 
 #include <vector>
 #include <memory>
+#include <iostream>
 
 struct Point3D
 {
     float x, y, z;
+
+    Point3D operator*(const float&);
+    Point3D operator+(const Point3D&);
+
+    friend std::ostream& operator<<(std::ostream&, const Point3D&);
+
 };
 
 
@@ -43,17 +50,13 @@ public:
 
     // All memory pertaining to sub-trees will be deleted
     // when a BHNode goes out of scope 
-    std::unique_ptr<BHNode> oct1;
-    std::unique_ptr<BHNode> oct2;
-    std::unique_ptr<BHNode> oct3;
-    std::unique_ptr<BHNode> oct4;
-    std::unique_ptr<BHNode> oct5;
-    std::unique_ptr<BHNode> oct6;
-    std::unique_ptr<BHNode> oct7;
-    std::unique_ptr<BHNode> oct8;
+    std::vector<std::unique_ptr<BHNode>> octTrees;
 
     Point3D getCentreOfMass();
+    void setCentreOfMass(Point3D);
+
     float getTotalMass();
+    void setTotalMass(float m);
 
     Point3D getLowBound();
     Point3D getHighBound();
@@ -87,7 +90,7 @@ class BHTree
 
     public:
 
-        BHTree(const std::vector<GravObj>&);
+        BHTree(const std::vector<GravObj>&, Point3D&, Point3D&);
 
         // When a BHTree instance goes out of scope
         // the memory deallocation will propagate down the
@@ -95,5 +98,7 @@ class BHTree
         std::unique_ptr<BHNode> root;
 
         void insertParticle(std::unique_ptr<BHNode>&, const GravObj& p);
+
+        void genPhysicalInfo(std::unique_ptr<BHNode>&);
 
 };
