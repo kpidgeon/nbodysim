@@ -37,7 +37,7 @@ BHNode::BHNode(Point3D lowBound, Point3D highBound)
     {
         octTrees.push_back(nullptr);
     }
-    
+
     _obj = nullptr;
 }
 
@@ -63,10 +63,8 @@ void BHNode::clearObject(){
 
 bool BHNode::contains(const GravObj& g){
 
-    // TODO Change this so that a particle can't be put into more than one
-    // cell i.e. change <= or >= to < or > ? or is this handled by BHTree::insertParticle?
     return (g.pos.x >= _lowBound.x && g.pos.y >= _lowBound.y && g.pos.z >= _lowBound.z
-        && g.pos.x <= _highBound.x && g.pos.y <= _highBound.y && g.pos.z <= _highBound.z);
+        && g.pos.x < _highBound.x && g.pos.y < _highBound.y && g.pos.z < _highBound.z);
 
 }
 
@@ -125,6 +123,9 @@ void BHTree::insertParticle(std::unique_ptr<BHNode>& node, const GravObj& p){
         
     }
     else{
+
+        // TODO Handle case where two particles exist at the same location
+        // as recursion continues forever
 
         // There are two particles in the same cell,
         // so need to branch
