@@ -1,93 +1,9 @@
-#include "structs.h"
+#include "BHTree.h"
 #include <iostream>
 #include <vector>
 
-Point3D Point3D::operator*(const float& s){
-    return Point3D({.x=s*x, .y=s*y, .z=s*z});
-}
 
-Point3D Point3D::operator+(const Point3D& p){
-    return Point3D({.x=x+p.x, .y=y+p.y, .z=z+p.z});
-}
-
-std::ostream& operator<<(std::ostream& os, const Point3D& p){
-    return os << "(" << p.x << ", " << p.y << ", " << p.z << ")";
-}
-
-
-
-GravObj::GravObj(Point3D ini_pos, float ini_vx, float ini_vy, float ini_vz, float mass)
-    : pos(ini_pos), vel({ini_vx, ini_vy, ini_vz}), _mass(mass)
-{}
-
-float GravObj::getMass(){
-    return _mass;
-}
-
-
-
-
-BHNode::BHNode(Point3D lowBound, Point3D highBound)
-{
-
-    _lowBound = lowBound;
-    _highBound = highBound;
-
-    for (int i = 0; i < 8; i++)
-    {
-        octTrees.push_back(nullptr);
-    }
-
-    _obj = nullptr;
-}
-
-Point3D BHNode::getLowBound(){
-    return _lowBound;
-}
-
-Point3D BHNode::getHighBound(){
-    return _highBound;
-}
-
-const GravObj* BHNode::getObject(){
-    return _obj;
-}
-
-void BHNode::setObject(const GravObj &p){
-    _obj = &p;
-}
-
-void BHNode::clearObject(){
-    _obj = nullptr;
-}
-
-bool BHNode::contains(const GravObj& g){
-
-    return (g.pos.x >= _lowBound.x && g.pos.y >= _lowBound.y && g.pos.z >= _lowBound.z
-        && g.pos.x < _highBound.x && g.pos.y < _highBound.y && g.pos.z < _highBound.z);
-
-}
-
-void BHNode::setTotalMass(float m){
-    _mass = m;
-}
-
-float BHNode::getTotalMass(){
-    return _mass;
-}
-
-void BHNode::setCentreOfMass(Point3D com){
-    _centreOfMass = com;
-}
-
-Point3D BHNode::getCentreOfMass(){
-    return _centreOfMass;
-}
-
-
-
-
-BHTree::BHTree(const std::vector<GravObj>& particles, Point3D& lowBound, Point3D& highBound)
+BHTree::BHTree(const std::vector<Particle>& particles, Vec3D& lowBound, Vec3D& highBound)
 {
 
     root = std::make_unique<BHNode>(BHNode(lowBound, highBound));
@@ -101,7 +17,7 @@ BHTree::BHTree(const std::vector<GravObj>& particles, Point3D& lowBound, Point3D
 }
 
 
-void BHTree::insertParticle(std::unique_ptr<BHNode>& node, const GravObj& p){
+void BHTree::insertParticle(std::unique_ptr<BHNode>& node, const Particle& p){
 
     if (not node->getObject()){
         
@@ -137,17 +53,17 @@ void BHTree::insertParticle(std::unique_ptr<BHNode>& node, const GravObj& p){
         auto dZ = v2.z - v1.z;
 
         // TODO Clean this up - ideally only want to create BHNodes when absolutely necessary
-        node->octTrees[0] = std::make_unique<BHNode>(BHNode(v1, Point3D({v1.x + dX/2, v1.y + dY/2, v1.z + dZ/2})));
-        node->octTrees[1] = std::make_unique<BHNode>(BHNode(Point3D({v1.x, v1.y + dY/2, v1.z}), Point3D({v1.x + dX/2, v2.y, v1.z + dZ/2})));
+        node->octTrees[0] = std::make_unique<BHNode>(BHNode(v1, Vec3D({v1.x + dX/2, v1.y + dY/2, v1.z + dZ/2})));
+        node->octTrees[1] = std::make_unique<BHNode>(BHNode(Vec3D({v1.x, v1.y + dY/2, v1.z}), Vec3D({v1.x + dX/2, v2.y, v1.z + dZ/2})));
 
-        node->octTrees[2] = std::make_unique<BHNode>(BHNode(Point3D({v1.x, v1.y, v1.z + dZ/2}), Point3D({v1.x + dX/2, v1.y + dY/2, v2.z})));
-        node->octTrees[3] = std::make_unique<BHNode>(BHNode(Point3D({v1.x, v1.y + dY/2, v1.z + dZ/2}), Point3D({v1.x + dX/2, v2.y, v2.z})));
+        node->octTrees[2] = std::make_unique<BHNode>(BHNode(Vec3D({v1.x, v1.y, v1.z + dZ/2}), Vec3D({v1.x + dX/2, v1.y + dY/2, v2.z})));
+        node->octTrees[3] = std::make_unique<BHNode>(BHNode(Vec3D({v1.x, v1.y + dY/2, v1.z + dZ/2}), Vec3D({v1.x + dX/2, v2.y, v2.z})));
 
-        node->octTrees[4] = std::make_unique<BHNode>(BHNode(Point3D({v1.x + dX/2, v1.y, v1.z}), Point3D({v2.x, v1.y + dY/2, v1.z + dZ/2})));
-        node->octTrees[5] = std::make_unique<BHNode>(BHNode(Point3D({v1.x + dX/2, v1.y + dY/2, v1.z}), Point3D({v2.x, v2.y, v1.z + dZ/2})));
+        node->octTrees[4] = std::make_unique<BHNode>(BHNode(Vec3D({v1.x + dX/2, v1.y, v1.z}), Vec3D({v2.x, v1.y + dY/2, v1.z + dZ/2})));
+        node->octTrees[5] = std::make_unique<BHNode>(BHNode(Vec3D({v1.x + dX/2, v1.y + dY/2, v1.z}), Vec3D({v2.x, v2.y, v1.z + dZ/2})));
 
-        node->octTrees[6] = std::make_unique<BHNode>(BHNode(Point3D({v1.x + dX/2, v1.y, v1.z + dZ/2}), Point3D({v2.x, v1.y + dY/2, v2.z})));
-        node->octTrees[7] = std::make_unique<BHNode>(BHNode(Point3D({v1.x + dX/2, v1.y + dY/2, v1.z + dZ/2}), v2));
+        node->octTrees[6] = std::make_unique<BHNode>(BHNode(Vec3D({v1.x + dX/2, v1.y, v1.z + dZ/2}), Vec3D({v2.x, v1.y + dY/2, v2.z})));
+        node->octTrees[7] = std::make_unique<BHNode>(BHNode(Vec3D({v1.x + dX/2, v1.y + dY/2, v1.z + dZ/2}), v2));
 
         // The particle p needs to be inserted
         // into the lower level...
@@ -190,7 +106,7 @@ void BHTree::genPhysicalInfo(std::unique_ptr<BHNode>& node){
         
         // Accumulate mass into node and determine COM
         float m = 0;
-        Point3D com = Point3D({0,0,0});
+        Vec3D com = Vec3D({0,0,0});
         for (auto &&s : node->octTrees)
         {
             m += s->getTotalMass();
@@ -211,7 +127,7 @@ void BHTree::genPhysicalInfo(std::unique_ptr<BHNode>& node){
         else{
             // Temporary - ideally won't consider this case
             node->setTotalMass(0);
-            node->setCentreOfMass(Point3D({0,0,0}));
+            node->setCentreOfMass(Vec3D({0,0,0}));
         }
 
     }
