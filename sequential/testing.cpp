@@ -94,6 +94,19 @@ void printCellBounds(const std::unique_ptr<BHNode>& node){
 }
 
 
+// void leapfrog(Particle& p, const float deltaT){
+// }
+
+
+// void integrate(Particle& p, const float deltaT){
+
+//     auto v = p.vel
+
+
+// }
+
+
+
 int main(int argc, char* argv[]){
 
     Vec3D lowBound = Vec3D({0,0,0});
@@ -131,10 +144,10 @@ int main(int argc, char* argv[]){
 
     for (auto &&p : ensemble)
     {
-        float f = 0;
-        float* const acc = &f;
+        Vec3D v(0,0,0);
+        Vec3D* const acc = &v;
         Gravity::totalAcceleration(p, tree.root, 1, acc);
-        std::cout << *acc << "\n";
+        std::cout << Vec3D::mag(*acc) << "\n";
     }
 
     // printCellBounds(tree.root);
