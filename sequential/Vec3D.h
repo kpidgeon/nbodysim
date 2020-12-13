@@ -12,6 +12,9 @@ struct Vec3D {
     friend Vec3D operator*(const Vec3D, const float);
     friend Vec3D operator*(const float, const Vec3D);
     friend Vec3D operator+(const Vec3D, const Vec3D);
+    friend Vec3D operator-(const Vec3D, const Vec3D);
     friend std::ostream& operator<<(std::ostream&, const Vec3D);
+
+    static float mag(const Vec3D&);
 
 };

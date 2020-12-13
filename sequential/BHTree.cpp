@@ -13,8 +13,10 @@ BHTree::BHTree(const std::vector<Particle>& particles, Vec3D& lowBound, Vec3D& h
         insertParticle(root, p);
     }
     
+    genPhysicalInfo(root);
 
 }
+
 
 
 void BHTree::insertParticle(std::unique_ptr<BHNode>& node, const Particle& p){
@@ -92,7 +94,8 @@ void BHTree::insertParticle(std::unique_ptr<BHNode>& node, const Particle& p){
     }
 }
 
-// TODO Would make more sense inside of BHTree constructor
+
+
 void BHTree::genPhysicalInfo(std::unique_ptr<BHNode>& node){
 
     // If the node has children - will need to change if child nodes

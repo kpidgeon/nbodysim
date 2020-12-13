@@ -14,7 +14,7 @@ public:
     Vec3D pos;
     Vec3D vel;
 
-    float getMass();
+    float getMass() const;
 
 private:
 

@@ -5,6 +5,8 @@
 #include "BHTree.h"
 #include <random>
 #include <string>
+#include <cmath>
+#include "Gravity.h"
 
 Vec3D randomPoint(Vec3D bound1, Vec3D bound2, std::mt19937_64& mtGen){
 
@@ -80,41 +82,62 @@ void printCells(const std::string& prefix, const std::unique_ptr<BHNode>& node, 
 }
 
 
+void printCellBounds(const std::unique_ptr<BHNode>& node){
+
+    std::cout << node->getLowBound() << "  " << node->getHighBound() << "\n";
+    for (auto &&s : node->octTrees)
+    {
+        if (s) { printCellBounds(s); }
+    }
+    
+
+}
+
 
 int main(int argc, char* argv[]){
 
     Vec3D lowBound = Vec3D({0,0,0});
     Vec3D highBound = Vec3D({10,10,10});
 
-    int samples = 100;
+    int samples = 10;
     if (argc >= 2){
         std::stringstream input(argv[1]);
         if (!(input >> samples)){
-            samples = 100;
+            samples = 10;
         }
     }
 
 
-    auto ensemble = std::make_unique<std::vector<Particle>>(genUniformEnsemble(samples, lowBound, highBound));
+    auto ensemble = genUniformEnsemble(samples, lowBound, highBound);
 
-    // Particle p1(Point3D({1,1,1}), 0, 0, 0, 5);
-    // Particle p2(Point3D({1,9,1}), 0, 0, 0, 5);
-    // Particle p3(Point3D({9,1,1}), 0, 0, 0, 5);
-    // Particle p4(Point3D({9,9,1}), 0, 0, 0, 5);
-    // Particle p5(Point3D({1,1,9}), 0, 0, 0, 5);
-    // Particle p6(Point3D({1,9,9}), 0, 0, 0, 5);
-    // Particle p7(Point3D({9,1,9}), 0, 0, 0, 5);
-    // Particle p8(Point3D({9,9,9}), 0, 0, 0, 5);
+    // Particle p1(Vec3D(1,1,1), 0, 0, 0, 5);
+    // Particle p2(Vec3D({1,9,1}), 0, 0, 0, 5);
+    // Particle p3(Vec3D({9,1,1}), 0, 0, 0, 5);
+    // Particle p4(Vec3D({9,9,1}), 0, 0, 0, 5);
+    // Particle p5(Vec3D({1,1,9}), 0, 0, 0, 5);
+    // Particle p6(Vec3D({1,9,9}), 0, 0, 0, 5);
+    // Particle p7(Vec3D({9,1,9}), 0, 0, 0, 5);
+    // Particle p8(Vec3D({9,9,9}), 0, 0, 0, 5);
 
-    // // Particle p9(Point3D({5,5,5}), 0, 0, 0, 20);
+    // Particle p9(Vec3D({5,5,5}), 0, 0, 0, 20);
 
-    // std::vector<Particle> ensemble = {p1, p2, p3, p4, p5, p6, p7, p8};
+    // std::vector<Particle> ensemble = {p1, p2, p3, p4, p5, p6, p7, p8, p9};
 
-    BHTree tree(*ensemble, lowBound, highBound);
-    tree.genPhysicalInfo(tree.root);
+    BHTree tree(ensemble, lowBound, highBound);
+    // tree.genPhysicalInfo(tree.root);
 
-    std::string p = "";
-    printCells(p, tree.root, true);
+    // std::string p = "";
+    // printCells(p, tree.root, true);
+
+    for (auto &&p : ensemble)
+    {
+        float f = 0;
+        float* const acc = &f;
+        Gravity::totalAcceleration(p, tree.root, 1, acc);
+        std::cout << *acc << "\n";
+    }
+
+    // printCellBounds(tree.root);
 
     return 0;
 }

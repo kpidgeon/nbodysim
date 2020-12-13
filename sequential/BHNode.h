@@ -17,14 +17,14 @@ public:
     // when a BHNode goes out of scope 
     std::vector<std::unique_ptr<BHNode>> octTrees;
 
-    Vec3D getCentreOfMass();
+    Vec3D getCentreOfMass() const;
     void setCentreOfMass(Vec3D);
 
-    float getTotalMass();
+    float getTotalMass() const;
     void setTotalMass(float m);
 
-    Vec3D getLowBound();
-    Vec3D getHighBound();
+    Vec3D getLowBound() const;
+    Vec3D getHighBound() const;
 
     const Particle* getObject();
     void setObject(const Particle&);

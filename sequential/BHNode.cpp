@@ -15,11 +15,11 @@ BHNode::BHNode(Vec3D lowBound, Vec3D highBound)
     obj_ = nullptr;
 }
 
-Vec3D BHNode::getLowBound(){
+Vec3D BHNode::getLowBound() const{
     return lowBound_;
 }
 
-Vec3D BHNode::getHighBound(){
+Vec3D BHNode::getHighBound() const{
     return highBound_;
 }
 
@@ -46,7 +46,7 @@ void BHNode::setTotalMass(float m){
     mass_ = m;
 }
 
-float BHNode::getTotalMass(){
+float BHNode::getTotalMass() const{
     return mass_;
 }
 
@@ -54,6 +54,6 @@ void BHNode::setCentreOfMass(Vec3D com){
     centreOfMass_ = com;
 }
 
-Vec3D BHNode::getCentreOfMass(){
+Vec3D BHNode::getCentreOfMass() const{
     return centreOfMass_;
 }
