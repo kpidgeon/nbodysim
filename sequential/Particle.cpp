@@ -1,9 +1,10 @@
 #include "Particle.h"
 
+int Particle::currID = 0;
 
-Particle::Particle(Vec3D ini_pos, float ini_vx, float ini_vy, float ini_vz, float mass)
-    : pos(ini_pos), vel(ini_vx, ini_vy, ini_vz), mass_(mass)
-{}
+Particle::Particle(Vec3D p, Vec3D v, float m) : pos(p), vel(v), mass_(m), ID(Particle::currID) {
+        Particle::currID += 1;
+}
 
 float Particle::getMass() const{
     return mass_;

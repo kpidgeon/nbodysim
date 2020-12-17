@@ -31,18 +31,19 @@ public:
     void clearObject();
     
     bool contains(const Particle&);
+    bool contains(const Vec3D&);
 
 private:
 
     const Particle *obj_;
 
-    // should replace these vertex bounds with a 'Cell'
+    // Should replace these vertex bounds with a 'Cell'
     // abstraction
     Vec3D lowBound_;
     Vec3D highBound_;
 
-    // for holding substructure information
-    Vec3D centreOfMass_;
-    float mass_;
+    // For holding substructure information
+    Vec3D centreOfMass_ = Vec3D(0,0,0);
+    float mass_ = 0;
 
 };

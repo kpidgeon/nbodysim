@@ -42,6 +42,11 @@ bool BHNode::contains(const Particle& g){
 
 }
 
+bool BHNode::contains(const Vec3D& v){
+    return (v.x >= lowBound_.x && v.y >= lowBound_.y && v.z >= lowBound_.z
+        && v.x < highBound_.x && v.y < highBound_.y && v.z < highBound_.z);
+}
+
 void BHNode::setTotalMass(float m){
     mass_ = m;
 }

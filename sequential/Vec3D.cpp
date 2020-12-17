@@ -18,6 +18,10 @@ Vec3D operator-(const Vec3D v1, const Vec3D v2){
     return Vec3D(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
 }
 
+bool operator!=(const Vec3D v1, const Vec3D v2){
+    return (v1.x == v2.x && v1.y == v2.y && v1.z == v2.z);
+}
+
 std::ostream& operator<<(std::ostream& os, const Vec3D v){
     return os << "(" << v.x << ", " << v.y << ", " << v.z << ")";
 }
