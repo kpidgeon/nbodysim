@@ -7,12 +7,6 @@ BHNode::BHNode(Vec3D lowBound, Vec3D highBound)
     lowBound_ = lowBound;
     highBound_ = highBound;
 
-    for (int i = 0; i < 8; i++)
-    {
-        octTrees.push_back(nullptr);
-    }
-
-    obj_ = nullptr;
 }
 
 Vec3D BHNode::getLowBound() const{
@@ -23,17 +17,6 @@ Vec3D BHNode::getHighBound() const{
     return highBound_;
 }
 
-const Particle* BHNode::getObject(){
-    return obj_;
-}
-
-void BHNode::setObject(const Particle &p){
-    obj_ = &p;
-}
-
-void BHNode::clearObject(){
-    obj_ = nullptr;
-}
 
 bool BHNode::contains(const Particle& g){
 

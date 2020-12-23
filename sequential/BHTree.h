@@ -6,7 +6,7 @@
 #include <vector>
 #include "Vec3D.h"
 #include <algorithm>
-
+#include <map>
 
 // Wrapper for the Barnes-Hut tree
 class BHTree
@@ -21,7 +21,9 @@ class BHTree
         // tree
         std::unique_ptr<BHNode> root;
 
-        void insertParticle(std::unique_ptr<BHNode>&, const Particle& p);
-        void genPhysicalInfo(std::unique_ptr<BHNode>&);
+        std::map<int, Particle> pLookup;
+
+        void insertParticle(BHNode&, const Particle& p);
+        void genPhysicalInfo(BHNode&);
 
 };

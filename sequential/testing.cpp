@@ -44,26 +44,22 @@ std::vector<Particle> genUniformEnsemble(int n, Vec3D bound1, Vec3D bound2){
 }
 
 // Print representation of a BHTree
-void printCells(const std::string& prefix, const std::unique_ptr<BHNode>& node, bool isLast){
+void printCells(const std::string& prefix, const BHNode& node, bool isLast){
 
-    if (node){
+    std::cout << prefix;
 
-        std::cout << prefix;
+    isLast ? std::cout << "└───" : std::cout << "├───";
 
-        isLast ? std::cout << "└───" : std::cout << "├───";
+    std::cout << "mass=" << node.getTotalMass()
+            << ", COM = " << node.getCentreOfMass()
+            << "\n";
 
-        std::cout << "mass=" << node->getTotalMass()
-                << ", COM = " << node->getCentreOfMass()
-                << "\n";
-
-        for (size_t i = 0; i < node->octTrees.size(); i++)
-        {
-            if (i == node->octTrees.size() - 1)
-                printCells(prefix + (isLast ? "    " : "|   "), node->octTrees.at(i), true);
-            else 
-                printCells(prefix + (isLast ? "    " : "|   "), node->octTrees.at(i), false);
-        }
-
+    for (size_t i = 0; i < node.octTrees.size(); i++)
+    {
+        if (i == node.octTrees.size() - 1)
+            printCells(prefix + (isLast ? "    " : "|   "), node.octTrees.at(i), true);
+        else 
+            printCells(prefix + (isLast ? "    " : "|   "), node.octTrees.at(i), false);
     }
 
 }

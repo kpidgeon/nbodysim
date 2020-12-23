@@ -1,11 +1,11 @@
 #include <iostream>
+#include <stdio.h>
 #include <sstream>
 #include <memory>
 #include <vector>
 #include "BHTree.h"
 #include "Gravity.h"
 #include "DistributionSampler.h"
-
 
 void integrate(Particle& p, const float deltaT, const Vec3D acc){
 
@@ -18,23 +18,32 @@ void integrate(Particle& p, const float deltaT, const Vec3D acc){
 void simulate(std::vector<Particle>& particles, float totalTime, const float deltaT){
 
     float timeElapsed = 0;
+    int totalSteps = 0;
+    std::vector<Vec3D> accels(particles.size());
 
     while (timeElapsed < totalTime){
 
         // Create BHTree
         BHTree tree(particles);
 
-        auto accels = std::make_unique<std::vector<Vec3D>>();
-
-        // Determine acceleration vector for each particle
-        for (auto &&p : particles)
-        {
-
-            Vec3D acc(0,0,0);
-            Gravity::totalAcceleration(p, tree.root, 1, &acc);
-            accels->push_back(acc);
-
+        /* Temporary - output positions every n time steps
+        if (totalSteps % 50 == 0){
+            for (auto &&p : particles)
+            {
+                std::cout << p.pos << "  ";
+            }
+            std::cout << "\n";
         }
+        */
+
+        // Calculate acceleration vectors
+        for (size_t i = 0; i < particles.size(); i++)
+        {
+            Vec3D acc(0,0,0);
+            Gravity::totalAcceleration(particles[i], *(tree.root), 1, &acc);
+            accels[i] = acc;
+        }
+        
 
         for (size_t i = 0; i < particles.size(); i++)
         {
@@ -42,14 +51,14 @@ void simulate(std::vector<Particle>& particles, float totalTime, const float del
             auto p = &particles.at(i);
 
             if (timeElapsed == 0){
-                p->vel = p->vel + (deltaT/2)*accels->at(i); // offset velocity by half a time step
+                p->vel = p->vel + (deltaT/2)*accels.at(i); // offset velocity by half a time step
             }else{
-                integrate(*p, deltaT, accels->at(i));
+                integrate(*p, deltaT, accels.at(i));
             }
 
         }
 
-        accels->clear();
+        totalSteps += 1;
         timeElapsed += deltaT;
 
     }
@@ -71,15 +80,10 @@ int main(int argc, char* argv[]){
         }
     }
 
-    const float totalTime = 10;
+    const float totalTime = 1;
     const float deltaT = .01;
     
-    std::vector<Particle> particles;
-    auto p1 = Particle(Vec3D(0, 0, 0), Vec3D(0, 0, 0), 1e6);
-    auto p2 = Particle(Vec3D(1e2, 0, 0), Vec3D(0, 100, 0), 1);
-
-    particles.push_back(p1);
-    particles.push_back(p2);
+    auto particles = DistributionSampler::samplePlummerStars(samples, 1, 1);
 
     simulate(particles, totalTime, deltaT);
 

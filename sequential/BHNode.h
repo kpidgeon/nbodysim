@@ -13,9 +13,9 @@ public:
 
     BHNode(Vec3D, Vec3D);
 
-    // All memory pertaining to sub-trees will be deleted
-    // when a BHNode goes out of scope 
-    std::vector<std::unique_ptr<BHNode>> octTrees;
+    std::vector<BHNode> octTrees;
+
+    int particleID = -1;
 
     Vec3D getCentreOfMass() const;
     void setCentreOfMass(Vec3D);
@@ -26,16 +26,10 @@ public:
     Vec3D getLowBound() const;
     Vec3D getHighBound() const;
 
-    const Particle* getObject();
-    void setObject(const Particle&);
-    void clearObject();
-    
     bool contains(const Particle&);
     bool contains(const Vec3D&);
 
 private:
-
-    const Particle *obj_;
 
     // Should replace these vertex bounds with a 'Cell'
     // abstraction
