@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <queue>
 
 /* Constructor creates a Barnes-Hut tree in full */
 BHTree::BHTree(std::vector<Particle>& particles)
@@ -150,4 +151,44 @@ void BHTree::insertParticle(BHNode& node, Particle& p){
 
     }
  
+}
+
+/*
+A function that converts a tree from representation using vectors to
+a representation in a contiguous array.
+*/
+std::vector<BHNode> BHTree::contigTree(){
+
+    std::vector<BHNode> nodes;
+
+    std::queue<BHNode*> q;
+    q.push(root.get());
+
+    while (!q.empty()){
+
+        auto temp = q.front();
+       
+        for (auto &&c : temp->octTrees)
+        {
+            q.push(&c);
+        }
+
+        /*
+        If node is terminal, need to add default node object in order
+        to maintain regularity in the vector of nodes; this leads to a sparse
+        list of nodes.
+        */
+        if (temp->octTrees.empty() && temp->particleID != -1){
+            auto t_ = BHNode();
+            q.push(&t_);
+        }
+        
+        nodes.push_back(*temp);
+        
+        q.pop();
+
+    }
+
+    return nodes;
+    
 }
