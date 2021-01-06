@@ -21,6 +21,8 @@ public:
         std::unique_ptr<BinaryBHNode> right = nullptr;
 
         bool contains(const Particle&) const;
+        std::pair<Vec3D, Vec3D> getSubRegion(const Particle&) const;
+        std::pair<Vec3D, Vec3D> getSiblingRegion(const Particle&) const;
 
         Vec3D lowBound;
         Vec3D highBound;
@@ -32,13 +34,10 @@ public:
 
     };
 
-    std::unique_ptr<BinaryBHNode> root;
+    std::unique_ptr<BinaryBHTree::BinaryBHNode> root = nullptr;
     std::map<int, Particle* const> pLookup;
 
-    std::pair<Vec3D, Vec3D> getSubRegion(const BinaryBHNode&, const Particle&) const;
-    std::pair<Vec3D, Vec3D> getSiblingRegion(const BinaryBHNode&, const Particle&) const;
-
-    void insertParticle(BinaryBHNode&, Particle&);
-    void genPhysicalInfo(BinaryBHNode&);
+    void insertParticle(BinaryBHTree::BinaryBHNode&, Particle&);
+    void genPhysicalInfo(BinaryBHTree::BinaryBHNode&);
 
 };

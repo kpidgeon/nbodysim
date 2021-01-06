@@ -2,7 +2,7 @@
 
 int Particle::currID = 0;
 
-Particle::Particle(Vec3D p, Vec3D v, float m) : pos(p), vel(v), mass_(m), ID(Particle::currID) {
+Particle::Particle(Vec3D p, Vec3D v, float m) : pos(p), vel(v), ID(Particle::currID), mass_(m) {
         Particle::currID += 1;
         depth = 1;
 }

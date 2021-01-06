@@ -6,10 +6,10 @@
 #include <memory>
 #include <vector>
 #include "BHTree.h"
+#include "BinaryBHTree.h"
 #include "Gravity.h"
 #include "DistributionSampler.h"
 #include <omp.h>
-#include "Timer.h"
 #include <chrono>
 
 void integrate(Particle& p, const float deltaT, const Vec3D acc){
@@ -20,7 +20,7 @@ void integrate(Particle& p, const float deltaT, const Vec3D acc){
 }
 
 
-std::vector<std::vector<int>> greedyPartition(std::vector<Particle>& particles, int k){
+std::vector<std::vector<int>> greedyPartition(std::vector<Particle>& particles, size_t k){
 
     std::sort(particles.begin(), particles.end(),
                     [](const Particle& p1, const Particle& p2){ return (p1.depth > p2.depth); });
@@ -67,8 +67,7 @@ void simulate(std::vector<Particle>& particles, float totalTime, const float del
 
         auto partitions = greedyPartition(particles, num_threads);
 
-        // Create BHTree
-        BHTree tree(particles);
+        BinaryBHTree tree(particles);
 
         #pragma omp parallel num_threads(num_threads)
         {
@@ -145,9 +144,6 @@ void simulate(std::vector<Particle>& particles, float totalTime, const float del
 
 int main(int argc, char* argv[]){
 
-    Vec3D lowBound = Vec3D({0,0,0});
-    Vec3D highBound = Vec3D({10,10,10});
-
     int samples = 10;
     if (argc >= 2){
         std::stringstream input(argv[1]);
@@ -164,18 +160,22 @@ int main(int argc, char* argv[]){
         }
     }
 
-    const float totalTime = 1;
+    const float totalTime = 100;
     const float deltaT = .01;
     
     auto particles = DistributionSampler::samplePlummerStars(samples, 1, 1);
+    // Particle p1(Vec3D(1,1,1), Vec3D(0,0,0), 1);
+    // Particle p2(Vec3D(9,9,9), Vec3D(0,0,0), 1);
+
+    // std::vector<Particle> particles = {p1, p2};
 
     {
-        std::chrono::high_resolution_clock clk;
-        auto start = clk.now();
+        // std::chrono::high_resolution_clock clk;
+        // auto start = clk.now();
         simulate(particles, totalTime, deltaT, num_threads);
-        auto end = clk.now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
-        printf("%ld \n", duration);
+        // auto end = clk.now();
+        // auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
+        // printf("%ld \n", duration);
     }
 
     return 0;

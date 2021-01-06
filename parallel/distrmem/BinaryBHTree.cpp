@@ -50,17 +50,17 @@ BinaryBHTree::BinaryBHTree(std::vector<Particle>& particles){
 Given a cuboid region that a Particle is known to be in, find the sub-octant
 that the Particle is within.
 */
-std::pair<Vec3D, Vec3D> BinaryBHTree::getSubRegion(const BinaryBHNode& node, const Particle& p) const {
+std::pair<Vec3D, Vec3D> BinaryBHTree::BinaryBHNode::getSubRegion(const Particle& p) const {
 
-    auto midpoint = (node.lowBound + node.highBound) * 0.5;
+    auto midpoint = (lowBound + highBound) * 0.5;
 
-    auto newLowX = p.pos.x > midpoint.x ? midpoint.x : node.lowBound.x;
-    auto newLowY = p.pos.y > midpoint.y ? midpoint.y : node.lowBound.y;
-    auto newLowZ = p.pos.z > midpoint.z ? midpoint.z : node.lowBound.z;
+    auto newLowX = p.pos.x > midpoint.x ? midpoint.x : lowBound.x;
+    auto newLowY = p.pos.y > midpoint.y ? midpoint.y : lowBound.y;
+    auto newLowZ = p.pos.z > midpoint.z ? midpoint.z : lowBound.z;
 
-    auto newHighX = p.pos.x > midpoint.x ? node.highBound.x : midpoint.x;
-    auto newHighY = p.pos.y > midpoint.y ? node.highBound.y : midpoint.y;
-    auto newHighZ = p.pos.z > midpoint.z ? node.highBound.z : midpoint.z;
+    auto newHighX = p.pos.x > midpoint.x ? highBound.x : midpoint.x;
+    auto newHighY = p.pos.y > midpoint.y ? highBound.y : midpoint.y;
+    auto newHighZ = p.pos.z > midpoint.z ? highBound.z : midpoint.z;
 
     Vec3D newLowBound(newLowX, newLowY, newLowZ);
     Vec3D newHighBound(newHighX, newHighY, newHighZ);
@@ -75,24 +75,42 @@ std::pair<Vec3D, Vec3D> BinaryBHTree::getSubRegion(const BinaryBHNode& node, con
 Given a cuboid region represented by a node, that the Particle is not within,
 find the cell (sibling) region (with the same parent region) that contains the Particle.
 */
-std::pair<Vec3D, Vec3D> BinaryBHTree::getSiblingRegion(const BinaryBHNode& node, const Particle& p) const {
+std::pair<Vec3D, Vec3D> BinaryBHTree::BinaryBHNode::getSiblingRegion(const Particle& p) const {
 
-    auto distX = node.highBound.x - node.lowBound.x;
-    auto distY = node.highBound.y - node.lowBound.y;
-    auto distZ = node.highBound.z - node.lowBound.z;
+    auto distX = highBound.x - lowBound.x;
+    auto distY = highBound.y - lowBound.y;
+    auto distZ = highBound.z - lowBound.z;
+    auto dist = highBound - lowBound;
 
-    auto newLowX = p.pos.x < node.lowBound.x ? node.lowBound.x - distX : node.lowBound.x + (p.pos.x > node.highBound.x)*distX;
-    auto newLowY = p.pos.y < node.lowBound.y ? node.lowBound.y - distY : node.lowBound.y + (p.pos.y > node.highBound.y)*distY;
-    auto newLowZ = p.pos.z < node.lowBound.z ? node.lowBound.z - distZ : node.lowBound.z + (p.pos.z > node.highBound.z)*distZ;
+    Vec3D l = lowBound;
 
-    Vec3D lowBound(newLowX, newLowY, newLowZ);
-    Vec3D highBound(newLowX + distX, newLowY + distY, newLowZ + distZ);
+    if ( p.pos.x < lowBound.x )
+        l.x -= distX;
+    else if ( p.pos.x >= highBound.x )
+        l.x += distX;
 
-    return std::pair<Vec3D, Vec3D>(lowBound, highBound);
+    if ( (p.pos.y < lowBound.y) )
+        l.y -= distY;
+    else if ( p.pos.y >= highBound.y )
+        l.y += distY;
+
+
+    if ( (p.pos.z < lowBound.z) )
+        l.z -= distZ;
+    else if ( p.pos.z >= highBound.z )
+        l.z += distZ;
+
+    Vec3D h = l + dist;
+
+    return std::pair<Vec3D, Vec3D>(l, h);
 
 }
 
 
+/*
+Determine whether or not a cell (represented by a node) contains
+a particle within its volume.
+*/
 bool BinaryBHTree::BinaryBHNode::contains(const Particle& p) const {
 
     return (p.pos.x >= lowBound.x && p.pos.x < highBound.x
@@ -107,47 +125,51 @@ Insert a particle into the tree.
 */
 void BinaryBHTree::insertParticle(BinaryBHNode& node, Particle& p){
 
-    if (not node.contains(p)){
 
-        if (!node.right)
-        {
-            auto bounds = getSiblingRegion(node, p);
+    if (node.contains(p)){
+
+        if ( node.left )
+            insertParticle(*node.left, p);
+        else{
+
+            if ( node.particleID != -1 ){
+
+                auto currentlyHere = pLookup.at(node.particleID);
+
+                auto bounds = node.getSubRegion(p);
+                node.left = std::make_unique<BinaryBHNode>(bounds.first, bounds.second);
+
+                insertParticle(*node.left, p);
+                insertParticle(*node.left, *currentlyHere);
+
+                // Reset node
+                node.particleID = -1;
+                node.com = Vec3D(0,0,0);
+                node.mass = 0;
+
+            }
+            else{
+
+                node.particleID = p.ID;
+                node.com = p.pos;
+                node.mass = p.getMass();
+                pLookup.emplace(p.ID, &p);
+
+            }
+
+        }
+        
+    }
+    else{
+
+        if ( !node.right ){
+            auto bounds = node.getSiblingRegion(p);
             node.right = std::make_unique<BinaryBHNode>(bounds.first, bounds.second);
         }
         insertParticle(*node.right, p);
 
     }
-    else{
-
-        if (node.particleID == -1 && !node.left){
-
-            // 'Insert' particle at this node
-            node.particleID = p.ID;
-            node.com = p.pos;
-            node.mass = p.getMass();
-
-            pLookup.emplace(p.ID, &p);
-            
-        }
-        else if (node.particleID != -1) {
-
-            // Already a particle here, so need to branch
-            auto bounds = getSubRegion(node, *pLookup.at(node.particleID));
-            node.left = std::make_unique<BinaryBHNode>(bounds.first, bounds.second);
-
-            insertParticle(*node.left, *pLookup.at(node.particleID));
-
-            node.particleID = -1;
-            node.com = Vec3D(0,0,0);
-            node.mass = 0;
-
-        }
-
-        if (node.left)
-            insertParticle(*node.left, p);
-
-    }
-
+    
 }
 
 
@@ -155,7 +177,7 @@ void BinaryBHTree::insertParticle(BinaryBHNode& node, Particle& p){
 Propagate physical information (centre-of-mass, mass) from the leaves to
 the root of the tree.
 */
-void BinaryBHTree::genPhysicalInfo(BinaryBHNode& node){
+void BinaryBHTree::genPhysicalInfo(BinaryBHTree::BinaryBHNode& node){
 
     if (node.left){
 
@@ -165,26 +187,16 @@ void BinaryBHTree::genPhysicalInfo(BinaryBHNode& node){
         node.com.z = 0;
 
         auto temp = node.left.get();
-
-        std::queue<BinaryBHNode*> q;
-        q.push(temp);
-
-        while (temp->right)
+        while (temp)
         {
-            q.push(temp->right.get());
+
+            genPhysicalInfo(*temp);
+
+            node.mass += temp->mass;
+            node.com = node.com + temp->com*temp->mass;
+
             temp = temp->right.get();
-        }
         
-        while (!q.empty())
-        {
-            auto t = q.front();
-
-            genPhysicalInfo(*t);
-
-            node.mass += t->mass;
-            node.com = node.com + t->com*t->mass;
-
-            q.pop();
         }
         node.com = node.com * (1/node.mass);
 

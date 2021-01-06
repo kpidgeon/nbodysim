@@ -1,5 +1,6 @@
 #include "Gravity.h"
 #include <cmath>
+#include <queue>
 
 
 Vec3D Gravity::gAcceleration(const float m, const Vec3D r, const float G){
@@ -43,8 +44,45 @@ void Gravity::totalAcceleration(const Particle& p, const BHNode& node,
         if (branch){
             for (auto &&s : node.octTrees)
             {
-                totalAcceleration(p, s, openingCriterion, pv);
+                totalAcceleration(p, *s, openingCriterion, pv);
             }
+        }
+
+    }
+
+}
+
+
+
+void Gravity::totalAcceleration(const Particle& p, const BinaryBHTree::BinaryBHNode& node,
+                            const float openingCriterion, Vec3D* const pv){
+
+    auto xLength = node.highBound.x - node.lowBound.x;
+    auto delta = node.com - p.pos;
+    auto dist = Vec3D::mag(delta);
+    
+    if (xLength / dist < openingCriterion){
+
+        // Compute force on p due to mass at COM of node
+        // (could add node to interaction list instead)
+        *pv = *pv + gAcceleration(node.mass, delta, 1);
+
+    }
+    else if (!node.left)
+    {
+        if (node.particleID != p.ID)
+            *pv = *pv + gAcceleration(node.mass, delta, 1);
+    }
+    else if (node.left)
+    {
+
+        auto temp = node.left.get();
+        while (temp)
+        {
+            
+            totalAcceleration(p, *temp, openingCriterion, pv);
+            temp = temp->right.get();
+
         }
 
     }
