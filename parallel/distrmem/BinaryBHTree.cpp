@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <vector>
 #include <queue>
+#include <cmath>
 
 
 BinaryBHTree::BinaryBHTree(std::vector<Particle>& particles){
@@ -36,6 +37,7 @@ BinaryBHTree::BinaryBHTree(std::vector<Particle>& particles){
 
     /* Build the Barnes-Hut tree */
     root = std::make_unique<BinaryBHNode>(BinaryBHNode(lowBound, highBound));
+    root->depth = 0;
 
     for (auto &&p : particles)
     {
@@ -108,23 +110,12 @@ std::pair<Vec3D, Vec3D> BinaryBHTree::BinaryBHNode::getSiblingRegion(const Parti
 
 
 /*
-Determine whether or not a cell (represented by a node) contains
-a particle within its volume.
-*/
-bool BinaryBHTree::BinaryBHNode::contains(const Particle& p) const {
-
-    return (p.pos.x >= lowBound.x && p.pos.x < highBound.x
-        && p.pos.y >= lowBound.y && p.pos.y < highBound.y
-        && p.pos.z >= lowBound.z && p.pos.z < highBound.z);
-
-}
-
-
-/*
 Insert a particle into the tree.
 */
 void BinaryBHTree::insertParticle(BinaryBHNode& node, Particle& p){
 
+    if (node.depth > maxDepth)
+        maxDepth = node.depth;
 
     if (node.contains(p)){
 
@@ -138,6 +129,7 @@ void BinaryBHTree::insertParticle(BinaryBHNode& node, Particle& p){
 
                 auto bounds = node.getSubRegion(p);
                 node.left = std::make_unique<BinaryBHNode>(bounds.first, bounds.second);
+                node.left->depth = node.depth + 1;
 
                 insertParticle(*node.left, p);
                 insertParticle(*node.left, *currentlyHere);
@@ -163,8 +155,11 @@ void BinaryBHTree::insertParticle(BinaryBHNode& node, Particle& p){
     else{
 
         if ( !node.right ){
+
             auto bounds = node.getSiblingRegion(p);
             node.right = std::make_unique<BinaryBHNode>(bounds.first, bounds.second);
+            node.right->depth = node.depth + 1;
+        
         }
         insertParticle(*node.right, p);
 
@@ -203,3 +198,54 @@ void BinaryBHTree::genPhysicalInfo(BinaryBHTree::BinaryBHNode& node){
     }
 
 }
+
+
+
+// std::vector<BinaryBHTree::BinaryBHNode::MinimalBHNode> BinaryBHTree::toContigFormat() const {
+
+//     std::queue<BinaryBHNode*> q;
+
+//     // Reserve enough space for a complete tree
+//     std::vector<BinaryBHNode::MinimalBHNode> minimalData;//std::pow(2, maxDepth+1));
+
+//     // q.push(*root.get());
+    
+//     // Do a breadth-first-search
+    
+//     // For each node, if it is not one of the nodes at
+//     // the maximum depth of the tree, we need to generate two child nodes
+//     // for it.
+
+//     q.push(root.get());
+//     BinaryBHNode* temp = q.front();
+//     while ( !q.empty() ){
+
+//         temp = q.front();
+//         q.pop();
+        
+//         if ( temp->depth < (maxDepth - 1) ){
+
+//             if ( !temp->left ){
+//                 temp->left = std::make_unique<BinaryBHNode>();
+//                 temp->left->depth = temp->depth + 1;
+//             }
+
+//             if ( !temp->right && temp->depth != 0){
+//                 temp->right = std::make_unique<BinaryBHNode>();
+//                 temp->right->depth = temp->depth + 1;
+//             }
+
+//             q.push(temp->left.get());
+            
+//             if (temp->depth != 0)
+//                 q.push(temp->right.get());
+
+//         }
+
+//         minimalData.push_back(temp->toMinimal());
+
+//     }
+
+//     return minimalData;
+
+// }
